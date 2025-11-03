@@ -405,7 +405,13 @@ class KSamplerX0Inpaint:
                 denoise_mask = model_options["denoise_mask_function"](sigma, denoise_mask, extra_options={"model": self.inner_model, "sigmas": self.sigmas})
             latent_mask = 1. - denoise_mask
             x = x * denoise_mask + self.inner_model.inner_model.scale_latent_inpaint(x=x, sigma=sigma, noise=self.noise, latent_image=self.latent_image) * latent_mask
+        if model_management.is_intel_hpu():
+            import habana_frameworks.torch.core as htcore
+            htcore.mark_step()
         out = self.inner_model(x, sigma, model_options=model_options, seed=seed)
+        if model_management.is_intel_hpu():
+            import habana_frameworks.torch.core as htcore
+            htcore.mark_step()
         if denoise_mask is not None:
             out = out * denoise_mask + self.latent_image * latent_mask
         return out
