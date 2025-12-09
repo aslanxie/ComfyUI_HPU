@@ -483,6 +483,8 @@ def attention_pytorch(q, k, v, heads, mask=None, attn_precision=None, skip_resha
             lambda t: t.view(b, -1, heads, dim_head).transpose(1, 2),
             (q, k, v),
         )
+    if model_management.is_intel_hpu() and mask != None and mask.ndim ==2:
+        mask = mask.unsqueeze(0).unsqueeze(0)
 
     if mask is not None:
         # add a batch dimension if there isn't already one
@@ -1093,5 +1095,3 @@ class SpatialVideoTransformer(SpatialTransformer):
             x = self.proj_out(x)
         out = x + x_in
         return out
-
-
