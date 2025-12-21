@@ -172,6 +172,11 @@ def is_mlu():
 
 def is_intel_hpu():
     global hpu_available
+    global cpu_state
+
+    if cpu_state == CPUState.CPU:
+        return False
+        
     if hpu_available:
         return True
     return False
