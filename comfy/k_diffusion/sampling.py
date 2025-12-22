@@ -1712,6 +1712,17 @@ def sample_seeds_2(model, x, sigmas, extra_args=None, callback=None, disable=Non
             htcore.mark_step()
     return x
 
+@torch.no_grad()
+def sample_exp_heun_2_x0(model, x, sigmas, extra_args=None, callback=None, disable=None, solver_type="phi_2"):
+    """Deterministic exponential Heun second order method in data prediction (x0) and logSNR time."""
+    return sample_seeds_2(model, x, sigmas, extra_args=extra_args, callback=callback, disable=disable, eta=0.0, s_noise=0.0, noise_sampler=None, r=1.0, solver_type=solver_type)
+
+
+@torch.no_grad()
+def sample_exp_heun_2_x0_sde(model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1., s_noise=1., noise_sampler=None, solver_type="phi_2"):
+    """Stochastic exponential Heun second order method in data prediction (x0) and logSNR time."""
+    return sample_seeds_2(model, x, sigmas, extra_args=extra_args, callback=callback, disable=disable, eta=eta, s_noise=s_noise, noise_sampler=noise_sampler, r=1.0, solver_type=solver_type)
+
 
 @torch.no_grad()
 def sample_seeds_3(model, x, sigmas, extra_args=None, callback=None, disable=None, eta=1., s_noise=1., noise_sampler=None, r_1=1./3, r_2=2./3):
@@ -1862,7 +1873,7 @@ def sample_sa_solver(model, x, sigmas, extra_args=None, callback=None, disable=F
         # Predictor
         if sigmas[i + 1] == 0:
             # Denoising step
-            x = denoised
+            x_pred = denoised
         else:
             tau_t = tau_func(sigmas[i + 1])
             curr_lambdas = lambdas[i - predictor_order_used + 1:i + 1]
@@ -1886,7 +1897,7 @@ def sample_sa_solver(model, x, sigmas, extra_args=None, callback=None, disable=F
         if model_management.is_intel_hpu():
             import habana_frameworks.torch.core as htcore
             htcore.mark_step()
-    return x
+    return x_pred
 
 
 @torch.no_grad()
